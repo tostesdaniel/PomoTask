@@ -1,5 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { differenceInSeconds } from "date-fns";
 import { Play } from "phosphor-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -18,7 +20,18 @@ const newCycleFormValidationSchema = z.object({
 
 type NewCycleFormData = z.infer<typeof newCycleFormValidationSchema>;
 
+interface Cycle {
+  id: string;
+  task: string;
+  minutesAmount: number;
+  startDate: Date;
+}
+
 export default function Home() {
+  const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
+  const [secondsPassed, setSecondsPassed] = useState(0);
+
   const { handleSubmit, register, reset, watch } = useForm<NewCycleFormData>({
     defaultValues: {
       task: "",
@@ -26,11 +39,60 @@ export default function Home() {
     },
     resolver: zodResolver(newCycleFormValidationSchema),
   });
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId);
+
+  useEffect(() => {
+    let interval: number;
+
+    if (activeCycle) {
+      interval = setInterval(() => {
+        const currentDate = new Date();
+        const difference = differenceInSeconds(
+          currentDate,
+          activeCycle.startDate
+        );
+        setSecondsPassed(difference);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [activeCycle]);
 
   function handleCreateNewCycle(data: NewCycleFormData) {
-    console.log(data);
+    const id = String(new Date().getTime());
+
+    const newCycle: Cycle = {
+      id,
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+      startDate: new Date(),
+    };
+
+    setCycles((prevCycles) => [...prevCycles, newCycle]);
+    setActiveCycleId(id);
+    setSecondsPassed(0);
+
     reset();
   }
+
+  const totalSecondsInCycle = activeCycle ? activeCycle.minutesAmount * 60 : 0;
+  const elapsedSecondsInCycle = totalSecondsInCycle - secondsPassed;
+
+  const elapsedMinutes = Math.floor(elapsedSecondsInCycle / 60);
+  const elapsedSeconds = elapsedSecondsInCycle % 60;
+
+  const formattedElapsedMinutes = String(elapsedMinutes).padStart(2, "0");
+  const formattedElapsedSeconds = String(elapsedSeconds).padStart(2, "0");
+
+  useEffect(() => {
+    if (activeCycle) {
+      document.title = `${formattedElapsedMinutes}:${formattedElapsedSeconds} | PomoTask`;
+    }
+  }, [activeCycle, formattedElapsedMinutes, formattedElapsedSeconds]);
 
   const task = watch("task");
   const isSubmitDisabled = !task;
@@ -67,11 +129,11 @@ export default function Home() {
         </FormContainer>
 
         <CountdownContainer>
-          <span>0</span>
-          <span>0</span>
+          <span>{formattedElapsedMinutes[0]}</span>
+          <span>{formattedElapsedMinutes[1]}</span>
           <span>:</span>
-          <span>0</span>
-          <span>0</span>
+          <span>{formattedElapsedSeconds[0]}</span>
+          <span>{formattedElapsedSeconds[1]}</span>
         </CountdownContainer>
 
         <StartCountdownButton type="submit" disabled={isSubmitDisabled}>

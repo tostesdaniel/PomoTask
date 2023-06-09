@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { differenceInSeconds } from "date-fns";
-import { Play } from "phosphor-react";
+import { Play, Stop } from "phosphor-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -97,6 +97,35 @@ export default function Home() {
   const task = watch("task");
   const isSubmitDisabled = !task;
 
+  useEffect(() => {
+    if (elapsedSecondsInCycle <= 0 && activeCycle) {
+      setActiveCycleId(null);
+      setSecondsPassed(0);
+    }
+  }, [elapsedSecondsInCycle, activeCycle]);
+
+  function renderButton() {
+    if (activeCycle) {
+      return (
+        <StartCountdownButton type="button" $variant="stop">
+          <Stop size={24} />
+          Parar
+        </StartCountdownButton>
+      );
+    }
+
+    return (
+      <StartCountdownButton
+        type="submit"
+        disabled={isSubmitDisabled}
+        $variant="start"
+      >
+        <Play size={24} />
+        Começar
+      </StartCountdownButton>
+    );
+  }
+
   return (
     <HomeContainer>
       <form onSubmit={handleSubmit(handleCreateNewCycle)}>
@@ -136,10 +165,7 @@ export default function Home() {
           <span>{formattedElapsedSeconds[1]}</span>
         </CountdownContainer>
 
-        <StartCountdownButton type="submit" disabled={isSubmitDisabled}>
-          <Play size={24} />
-          Começar
-        </StartCountdownButton>
+        {renderButton()}
       </form>
     </HomeContainer>
   );

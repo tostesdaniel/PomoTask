@@ -25,6 +25,7 @@ interface Cycle {
   task: string;
   minutesAmount: number;
   startDate: Date;
+  interruptedDate?: Date;
 }
 
 export default function Home() {
@@ -79,6 +80,30 @@ export default function Home() {
     reset();
   }
 
+  function handleInterrupCycle() {
+    if (activeCycle) {
+      const interruptedCycle = {
+        ...activeCycle,
+        interruptedDate: new Date(),
+      };
+
+      setCycles((prevCycles) => {
+        const updatedCycles = prevCycles.map((cycle) => {
+          if (cycle.id === activeCycleId) {
+            return interruptedCycle;
+          } else {
+            return cycle;
+          }
+        });
+
+        return updatedCycles;
+      });
+
+      setActiveCycleId(null);
+      setSecondsPassed(0);
+    }
+  }
+
   const totalSecondsInCycle = activeCycle ? activeCycle.minutesAmount * 60 : 0;
   const elapsedSecondsInCycle = totalSecondsInCycle - secondsPassed;
 
@@ -107,7 +132,11 @@ export default function Home() {
   function renderButton() {
     if (activeCycle) {
       return (
-        <StartCountdownButton type="button" $variant="stop">
+        <StartCountdownButton
+          type="button"
+          $variant="stop"
+          onClick={handleInterrupCycle}
+        >
           <Stop size={24} />
           Parar
         </StartCountdownButton>

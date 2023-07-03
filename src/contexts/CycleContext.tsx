@@ -15,6 +15,7 @@ interface Cycle {
 }
 
 interface CycleContextType {
+  cycles: Cycle[];
   activeCycle: Cycle | undefined;
   activeCycleId: string | null;
   setActiveCycleId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -82,6 +83,7 @@ export function CyclesContextProvider({
   return (
     <CyclesContext.Provider
       value={{
+        cycles,
         activeCycle,
         activeCycleId,
         setActiveCycleId,

@@ -7,10 +7,9 @@ export function Countdown() {
   const {
     activeCycle,
     activeCycleId,
-    setActiveCycleId,
-    setCycles,
     secondsPassed,
     setSecondsPassed,
+    finishCycle,
   } = useContext(CyclesContext);
 
   const totalSecondsInCycle = activeCycle ? activeCycle.minutesAmount * 60 : 0;
@@ -46,41 +45,22 @@ export function Countdown() {
 
   useEffect(() => {
     if (activeCycle && elapsedSecondsInCycle <= 0) {
-      const finishedCycle = {
-        ...activeCycle,
-        finishedDate: new Date(),
-      };
-
-      setCycles((prevCycles) => {
-        const updatedCycles = prevCycles.map((cycle) => {
-          if (cycle.id === activeCycleId) {
-            return finishedCycle;
-          } else {
-            return cycle;
-          }
-        });
-
-        return updatedCycles;
-      });
-
-      setActiveCycleId(null);
+      finishCycle();
       setSecondsPassed(0);
     }
   }, [
     activeCycle,
     activeCycleId,
-    setActiveCycleId,
     elapsedSecondsInCycle,
-    setCycles,
+    finishCycle,
     setSecondsPassed,
   ]);
 
   useEffect(() => {
     if (elapsedSecondsInCycle <= 0 && activeCycle) {
-      setActiveCycleId(null);
       setSecondsPassed(0);
     }
-  }, [elapsedSecondsInCycle, activeCycle, setActiveCycleId, setSecondsPassed]);
+  }, [elapsedSecondsInCycle, activeCycle, setSecondsPassed]);
 
   useEffect(() => {
     if (activeCycle) {

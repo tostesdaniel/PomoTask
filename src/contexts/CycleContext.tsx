@@ -22,6 +22,7 @@ interface CycleContextType {
   setSecondsPassed: React.Dispatch<React.SetStateAction<number>>;
   createNewCycle: (data: CreateCycleData) => void;
   interruptCycle: () => void;
+  finishCycle: () => void;
 }
 
 export const CyclesContext = createContext({} as CycleContextType);
@@ -121,6 +122,21 @@ export function CyclesContextProvider({
     }
   }
 
+  function finishCycle() {
+    if (activeCycle) {
+      const finishedCycle = {
+        ...activeCycle,
+        finishedDate: new Date(),
+      };
+
+      dispatch({
+        type: "FINISH_CYCLE",
+        payload: finishedCycle,
+      });
+      setSecondsPassed(0);
+    }
+  }
+
   return (
     <CyclesContext.Provider
       value={{
@@ -131,6 +147,7 @@ export function CyclesContextProvider({
         setSecondsPassed,
         createNewCycle,
         interruptCycle,
+        finishCycle,
       }}
     >
       {children}
